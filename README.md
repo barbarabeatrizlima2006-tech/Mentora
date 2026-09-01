@@ -37,6 +37,10 @@ mentora/
 
  Em desenvolvimento
 
+ ##  Como rodar
+
+ ...
+
 ##  Autora
 
 Desenvolvido por **Barbara Beatriz, Emily Delgado, Maria Eduarda Chaves, Bianca Ramos e Eloa Vicente**
