@@ -9,15 +9,16 @@ A ideia do Mentora é facilitar o acesso a aulas particulares de reforço escola
 
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Python (Flask)
-- **Banco de Dados:** SQL
+- **Banco de Dados:** Mysql Workbench
 
-## Funcionalidades - Ainda em definição.
+## Funcionalidades 
 
 - [ ] Cadastro de alunos e professores
 - [ ] Busca e filtro de professores por matéria
 - [ ] Agendamento de aulas
 - [ ] Sistema de avaliações
 - [ ] Área de perfil (aluno/professor)
+- [ ] Chat
 
 
 ##  Estrutura do projeto
