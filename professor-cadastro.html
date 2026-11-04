@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentora</title>
+<link rel="icon" type="image/png" href="Imagens/capelo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="menu"></div>
+<div class="container estreito">
+  <div class="linha"><a href="#" class="cresce" onclick="voltar(); return false;">← Voltar</a><small id="passo"></small></div>
+  <div class="barra"><span></span><span></span><span></span></div>
+
+  <div class="card">
+    <div class="etapa">
+      <h1>Quem é você?</h1><small>Complete seu perfil de professor</small>
+      <label>Nome completo</label><input type="text" id="pnome">
+            <label>Formação acadêmica</label><input type="text" id="cad-formacao" placeholder="Ex: Licenciatura em Matemática – USP">
+      <label>Apresentação</label><textarea rows="3" id="cad-descricao" placeholder="Fale sobre sua experiência e metodologia..."></textarea>
+      <button class="btn btn-largo" style="width:100%" onclick="irEtapa(2)">Continuar</button>
+    </div>
+
+    <div class="etapa">
+      <h1>Suas aulas</h1><small>Conte sobre suas aulas</small>
+      <label>Disciplinas que você ensina</label>
+      <div id="cad-disciplinas">
+        <button class="chip" onclick="this.classList.toggle('ativo')">Matemática</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">Física</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">Inglês</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">Programação</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">Química</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">Português</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">Biologia</button>
+        <button class="chip" onclick="this.classList.toggle('ativo')">História</button>
+      </div>
+      <label>Valor da aula (R$/hora)</label><input type="number" id="cad-preco" placeholder="80" required>
+      <label>Modalidade</label><select id="cad-modalidade"><option value="ambos">Online e presencial</option><option value="online">Online</option><option value="presencial">Presencial</option></select>
+      <button class="btn btn-largo" style="width:100%;margin-top:20px" onclick="irEtapa(3)">Continuar</button>
+    </div>
+
+    <div class="etapa">
+      <h1>Últimos detalhes</h1><small>Foto e disponibilidade</small>
+      <label>Foto de perfil (JPG ou PNG, máx 5 MB)</label><input type="file" id="cad-foto" accept="image/*">
+      <label>Disponibilidade</label>
+      <div id="cad-dias">
+        <button class="chip" data-dia="Segunda" onclick="this.classList.toggle('ativo')">Seg</button>
+        <button class="chip" data-dia="Terça" onclick="this.classList.toggle('ativo')">Ter</button>
+        <button class="chip" data-dia="Quarta" onclick="this.classList.toggle('ativo')">Qua</button>
+        <button class="chip" data-dia="Quinta" onclick="this.classList.toggle('ativo')">Qui</button>
+        <button class="chip" data-dia="Sexta" onclick="this.classList.toggle('ativo')">Sex</button>
+        <button class="chip" data-dia="Sábado" onclick="this.classList.toggle('ativo')">Sáb</button>
+      </div>
+      <label>Comprovante de formação (PDF ou imagem)</label><input type="file" id="cad-comprovante">
+      <p><input type="checkbox" id="autorizo"> <small>Autorizo a análise do meu perfil pela equipe Mentora.</small></p>
+      <button class="btn btn-largo" style="width:100%" onclick="enviarCadastroProfessor()">Enviar para análise</button>
+    </div>
+  </div>
+</div>
+<script src="api.js"></script>   <!-- conexão com a API (carregar ANTES do script.js) -->
+<script src="script.js"></script>
+<script>
+  if (exigirLogin()) {
+    montarMenu(true);
+    document.getElementById("pnome").value = usuario().nome;
+    montarDisciplinasCadastro(); // troca os botões fixos pelas disciplinas do banco
+    irEtapa(1);
+  }
+</script>
+</body></html>

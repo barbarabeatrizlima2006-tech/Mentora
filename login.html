@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentora · Entrar</title>
+<link rel="icon" type="image/png" href="Imagens/capelo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="menu"></div>
+<div class="container estreito">
+  <a href="index.html">← Voltar</a>
+  <h1>Entrar</h1>
+  <p><small>Use o e-mail e a senha cadastrados</small></p>
+  <!-- ao enviar, chama entrar() do script.js, que faz POST /api/login e guarda o token -->
+  <form class="card" onsubmit="entrar(event)">
+    <label>E-mail</label><input type="email" name="email" required>
+    <label>Senha</label><input type="password" name="senha" required>
+    <button class="btn btn-largo" style="width:100%">Entrar</button>
+    <p class="centro"><small>Ainda não tem conta? <a href="cadastro.html" class="laranja">Cadastre-se</a></small></p>
+  </form>
+</div>
+<script src="api.js"></script>
+<script src="script.js"></script>
+<script>montarMenu(false);</script>
+</body></html>
