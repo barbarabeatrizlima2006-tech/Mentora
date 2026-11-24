@@ -1,8 +1,12 @@
--- LISTAR TODAS AS TABELAS E FUNÇÕES DO BANCO
+-- ============================================================
+-- MENTORA  (versão 3: inclui colunas de tipo, comprovante, PIN, tabela notificacao
+--           e a tabela pagamento adaptada à integração com o Asaas)
+-- ATENÇÃO: o DROP DATABASE abaixo apaga tudo. Use este arquivo só para criar o banco do zero.
+-- Conteúdo: 1) Estrutura  2) Índices  3) Dados de exemplo
+--           4) View  5) Consultas / operações de demonstração
+-- ============================================================
 
--- Criar Tabela Usuario, perfil_professor,..... TERMINAR
--- ==========================================================
-
+DROP DATABASE IF EXISTS mentora;
 CREATE DATABASE mentora CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; -- faz acentos e emojis serem salvos de maneira correta
 USE mentora;
 
@@ -117,14 +121,20 @@ CREATE TABLE aula (
     FOREIGN KEY (id_contrato) REFERENCES contrato(id_contrato)
 );
 
+-- Pagamento de um contrato (cobrança Pix no Asaas + retenção/escrow simulada)
 CREATE TABLE pagamento (
     id_pagamento INT AUTO_INCREMENT PRIMARY KEY,
     id_contrato INT NOT NULL,
     valor DECIMAL(10,2) NOT NULL,
+    comissao DECIMAL(10,2) NOT NULL DEFAULT 0,          -- parte da Mentora (20%)
+    valor_professor DECIMAL(10,2) NOT NULL DEFAULT 0,   -- parte do professor (80%)
     metodo VARCHAR(30),                       -- pix - cartao - boleto
-    status VARCHAR(30) DEFAULT 'retido',      -- retido - liberado - reembolsado - em_disputa
+    status VARCHAR(30) DEFAULT 'retido',      -- pendente - retido - em_disputa - liberado - reembolsado - cancelado
     data_pagamento DATETIME DEFAULT CURRENT_TIMESTAMP,
     data_liberacao DATETIME,
+    asaas_cobranca_id VARCHAR(40) NULL UNIQUE,  -- id da cobrança no Asaas
+    pix_payload TEXT NULL,                      -- Pix "copia e cola"
+    pix_qrcode MEDIUMTEXT NULL,                 -- QR code em base64
     FOREIGN KEY (id_contrato) REFERENCES contrato(id_contrato)
 );
 
@@ -274,9 +284,11 @@ INSERT INTO aula (id_contrato, data_hora, duracao, status, confirmada_aluno) VAL
 (2, '2026-10-06 15:00:00', 60, 'realizada', TRUE),
 (2, '2026-10-13 15:00:00', 60, 'realizada', TRUE);
 
-INSERT INTO pagamento (id_contrato, valor, metodo, status, data_liberacao) VALUES
-(1, 320.00, 'pix',    'retido',   NULL),
-(2, 140.00, 'cartao', 'liberado', '2026-10-21 10:00:00');
+-- comissão da Mentora = 20% | valor do professor = 80%
+-- O pagamento 1 está em disputa (há uma disputa aberta para ele mais abaixo).
+INSERT INTO pagamento (id_contrato, valor, comissao, valor_professor, metodo, status, data_liberacao) VALUES
+(1, 320.00, 64.00, 256.00, 'pix',    'em_disputa', NULL),
+(2, 140.00, 28.00, 112.00, 'cartao', 'liberado',   '2026-10-21 10:00:00');
 
 INSERT INTO avaliacao (id_aula, id_usuario_aluno, id_professor, nota, comentario) VALUES
 (1, 1, 1, 5, 'Explicação muito clara, super recomendo!'),
@@ -354,8 +366,8 @@ JOIN usuario u ON u.id_usuario = m.id_usuario_remetente
 WHERE m.id_conversa = 1
 ORDER BY m.data_envio;
 
--- FATURAMENTO POR PROFESSOR (pagamentos liberados)
-SELECT u.nome AS professor, SUM(pg.valor) AS total_liberado
+-- FATURAMENTO POR PROFESSOR (pagamentos liberados: parte do professor)
+SELECT u.nome AS professor, SUM(pg.valor_professor) AS total_liberado
 FROM pagamento pg
 JOIN contrato c          ON c.id_contrato = pg.id_contrato
 JOIN perfil_professor pp ON pp.id_professor = c.id_professor
@@ -397,3 +409,164 @@ UNION ALL SELECT 'disputa', COUNT(*) FROM disputa
 UNION ALL SELECT 'conversa', COUNT(*) FROM conversa
 UNION ALL SELECT 'participante_conversa', COUNT(*) FROM participante_conversa
 UNION ALL SELECT 'mensagem', COUNT(*) FROM mensagem;
+
+USE mentora;
+
+SELECT id_disciplina, nome, HEX(nome)
+FROM disciplina;
+
+USE mentora;
+SELECT id_usuario, nome, email, tipo
+FROM usuario;
+
+UPDATE usuario
+SET tipo = 'admin'
+WHERE email = 'eloav@gmail.com';
+
+SELECT nome, email, tipo
+FROM usuario
+WHERE tipo = 'admin';
+
+SHOW VARIABLES LIKE 'character_set%';
+
+USE mentora;
+SHOW TABLE STATUS;
+
+USE mentora;
+
+SELECT nome
+FROM usuario;
+
+USE mentora;
+
+SELECT descricao
+FROM perfil_professor;
+
+DESCRIBE perfil_professor;
+
+SELECT
+    p.id_professor,
+    u.nome,
+    p.descricao
+FROM perfil_professor p
+JOIN usuario u ON p.id_usuario = u.id_usuario;
+
+USE mentora;
+
+UPDATE perfil_professor
+SET descricao = 'Professor de exatas com didática prática.'
+WHERE id_professor = 1;
+
+UPDATE perfil_professor
+SET descricao = 'Professora de idiomas e redação.'
+WHERE id_professor = 2;
+
+UPDATE perfil_professor
+SET descricao = 'Engenheiro e professor de programação e física.'
+WHERE id_professor = 3;
+
+USE mentora;
+
+SELECT
+    u.nome,
+    p.descricao
+FROM perfil_professor p
+JOIN usuario u ON p.id_usuario = u.id_usuario;
+
+USE mentora;
+
+SELECT * FROM disciplina;
+
+USE mentora;
+
+UPDATE disciplina SET
+    nome = 'Matemática',
+    descricao = 'Álgebra, geometria, funções e preparação para vestibular'
+WHERE id_disciplina = 1;
+
+UPDATE disciplina SET
+    descricao = 'Conversação, gramática e preparação para exames'
+WHERE id_disciplina = 2;
+
+UPDATE disciplina SET
+    descricao = 'Lógica de programação, Python e desenvolvimento web'
+WHERE id_disciplina = 3;
+
+UPDATE disciplina SET
+    descricao = 'Mecânica, termologia, eletricidade e ondas'
+WHERE id_disciplina = 4;
+
+UPDATE disciplina SET
+    descricao = 'Estrutura dissertativa e preparação para o ENEM'
+WHERE id_disciplina = 5;
+
+UPDATE disciplina SET
+    descricao = 'Gramática, interpretação de texto e literatura'
+WHERE id_disciplina = 6;
+
+UPDATE disciplina SET
+    descricao = 'Química geral, orgânica e físico-química'
+WHERE id_disciplina = 7;
+
+UPDATE disciplina SET
+    descricao = 'Citologia, genética, ecologia e fisiologia'
+WHERE id_disciplina = 8;
+
+UPDATE disciplina SET
+    nome = 'História',
+    descricao = 'História do Brasil e geral, com foco em vestibular'
+WHERE id_disciplina = 9;
+
+USE mentora;
+
+USE mentora;
+
+SELECT
+    u.nome,
+    p.experiencia
+FROM perfil_professor p
+JOIN usuario u ON p.id_usuario = u.id_usuario;
+
+SELECT * FROM disciplina;
+
+USE mentora;
+
+UPDATE perfil_professor
+SET experiencia = '6 anos ensinando inglês e redação.'
+WHERE id_professor = 2;
+
+SELECT experiencia
+FROM perfil_professor
+WHERE id_professor = 2;
+
+USE mentora;
+
+SELECT
+    id_professor,
+    descricao,
+    formacao,
+    experiencia
+FROM perfil_professor;
+
+USE mentora;
+
+SELECT
+    id_professor,
+    nome,
+    experiencia
+FROM perfil_professor
+JOIN usuario USING (id_usuario);
+
+USE mentora;
+
+-- Corrigir formação do Daniel
+UPDATE perfil_professor
+SET formacao = 'Licenciatura em Matemática - PUC-Campinas',
+    experiencia = '8 anos de reforço escolar e pré-vestibular.'
+WHERE id_professor = 1;
+
+-- Corrigir formação e experiência do Felipe
+UPDATE perfil_professor
+SET formacao = 'Engenharia de Computação - USP',
+    experiencia = '10 anos de experiência em tecnologia e ensino.'
+WHERE id_professor = 3;
